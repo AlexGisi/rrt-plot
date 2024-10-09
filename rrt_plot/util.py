@@ -32,9 +32,13 @@ def copy_and_run(name: str, config: dict):
     log_dir = local_bin_path.joinpath(f'{name}-log')
     process = subprocess.Popen([local_bin_path.joinpath(bin_path.name), log_dir], 
                             stdout=subprocess.PIPE, 
-                            stderr=subprocess.PIPE)
+                            stderr=subprocess.PIPE,
+                            text=True)
         
-    _, stderr = process.communicate()
+    stdout, stderr = process.communicate()
+    for line in stdout.splitlines():
+        print(line)
+        
     if stderr:
         print(f"Error output:\n{stderr.decode()}")
         

@@ -49,5 +49,61 @@ def q1c():
     
     plt.show()
     
+def q2a():
+    df = pd.read_csv(log_dir.joinpath('tree.csv'))
+    
+    for _, branch_df in df.groupby('branch'):
+        plt.plot(branch_df['x'], branch_df['y'])
+        branch_df = branch_df.reset_index(drop=True)
+        assert branch_df.at[len(branch_df)-1, 'x'] == 0.0
+        assert branch_df.at[len(branch_df)-1, 'y'] == 0.0
+        
+    plt.title("rrt tree with normalized weights after 1000 iterations")
+    plt.xlabel("x (m)")
+    plt.ylabel("y (m)")
+    plt.xlim([-15, 15])
+    plt.ylim([-15, 15])
+    plt.show()
+    
+def q2a_heatmap(iter=100):
+    dfs = []
+    for _ in range(iter):
+        log_dir = util.copy_and_run(args.name, config)
+        dfs.append(pd.read_csv(log_dir.joinpath('tree.csv')))
+
+    nodes_x = []
+    nodes_y = []
+    for df in dfs:
+        nodes_x.extend(list(df['x']))
+        nodes_y.extend(list(df['y']))
+        
+    plt.scatter(nodes_x, nodes_y)
+    plt.xlabel("x (m)")
+    plt.ylabel("y (m)")
+    plt.xlim([-15, 15])
+    plt.ylim([-15, 15])
+    
+    plt.title(f"all nodes from {iter} rrt runs under w3 weights")
+    plt.show()
+    
+def q2c():
+    df = pd.read_csv(log_dir.joinpath('tree.csv'))
+    
+    for _, branch_df in df.groupby('branch'):
+        plt.plot(branch_df['x'], branch_df['y'])
+        branch_df = branch_df.reset_index(drop=True)
+        assert branch_df.at[len(branch_df)-1, 'x'] == 0.0
+        assert branch_df.at[len(branch_df)-1, 'y'] == 0.0
+        
+    plt.scatter([3], [4], marker='x', c='r', s=36, label="goal")
+        
+    plt.title("rrt tree with goal biasing 0.5, k=3 after 1000 iterations")
+    plt.xlabel("x (m)")
+    plt.ylabel("y (m)")
+    plt.xlim([-15, 15])
+    plt.ylim([-15, 15])
+    plt.legend()
+    plt.show()
+    
 if __name__ == '__main__':
     q1c()
