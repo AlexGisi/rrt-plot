@@ -43,3 +43,12 @@ def copy_and_run(name: str, config: dict):
         print(f"Error output:\n{stderr.decode()}")
         
     return log_dir
+
+def extract_plottable_rectangles(df, ep):
+    verts_l = []
+    df = df[df['episode'] == ep]
+    for _, row in df.iterrows():
+        xs = [row['x0'], row['x1'], row['x2'], row['x3'], row['x0']]
+        ys = [row['y0'], row['y1'], row['y2'], row['y3'], row['y0']]
+        verts_l.append((xs, ys))
+    return verts_l
