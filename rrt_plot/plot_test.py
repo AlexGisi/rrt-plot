@@ -218,6 +218,19 @@ def plan(start_goal_df, tree_df, obstacle_df):
 
     plt.legend(handles=legend_elements, loc="upper right")
     plt.show()
+    
+
+def interpolate_test():
+    state_df = pd.read_csv(log_dir.joinpath("state.csv"))
+    state_rectangles = util.extract_plottable_rectangles(state_df, ep=None)
+    for i, (x, y) in enumerate(state_rectangles):
+        if i == 0:
+            plt.plot(x, y, c='g')
+        elif i == len(state_rectangles)-1:
+            plt.plot(x, y, c='r')
+        else:
+            plt.plot(x, y, c='k')
+    plt.show()
 
 
 name_to_plotter = {
@@ -225,6 +238,7 @@ name_to_plotter = {
     "dubins_random_test": dubins_paths_test,
     "plan_with_obstacles_test": plan_with_obstacles,
     "plan_without_obstacles_test": plan_with_obstacles,
+    "dubins_interpolate_test": interpolate_test,
 }
 
 name_to_plotter[args.name]()
