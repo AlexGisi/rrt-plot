@@ -144,11 +144,17 @@ def dubins_paths_test():
 
 def plan_with_obstacles():
     start_goal_df = pd.read_csv(log_dir.joinpath("start_goal.csv"))
+    start_tree_df = pd.read_csv(log_dir.joinpath("start_tree.csv"))
+    goal_tree_df = pd.read_csv(log_dir.joinpath("goal_tree.csv"))
+    
+    start = (float(start_goal_df["x_start"].item()), float(start_goal_df["y_start"].item()))
+    goal = (float(start_goal_df["x_goal"].item()), float(start_goal_df["y_goal"].item()))
+    
     try:
-        tree_df = pd.read_csv(log_dir.joinpath("tree.csv"))
-    except pd.errors.EmptyDataError:
-        print("no tree data")
-        return
+        trajectory_df = pd.read_csv(log_dir.joinpath("trajectory.csv"))
+    except (pd.errors.EmptyDataError):
+        print("no trajectory")
+        trajectory_df = None
 
     try:
         obstacle_df = pd.read_csv(log_dir.joinpath("obstacles.csv"))
@@ -156,16 +162,29 @@ def plan_with_obstacles():
         print("no obstacles")
         obstacle_df = None
 
-    plan(start_goal_df, tree_df, obstacle_df)
-
-
-def plan(start_goal_df, tree_df, obstacle_df):
     plt.figure(figsize=(10, 6))
-    for _, branch_df in tree_df.groupby("branch"):
+    
+    # Start tree
+    for _, branch_df in start_tree_df.groupby("branch"):
         plt.plot(branch_df["x"], branch_df["y"], "-")
         branch_df = branch_df.reset_index(drop=True)
-        assert branch_df.at[len(branch_df) - 1, "x"] == 0.0
-        assert branch_df.at[len(branch_df) - 1, "y"] == 0.0
+        
+        assert branch_df.at[len(branch_df) - 1, "x"] == start[0]
+        assert branch_df.at[len(branch_df) - 1, "y"] == start[1]
+    # Goal tree
+    for _, branch_df in goal_tree_df.groupby("branch"):
+        plt.plot(branch_df["x"], branch_df["y"], "--")
+        branch_df = branch_df.reset_index(drop=True)
+        assert branch_df.at[len(branch_df) - 1, "x"] == goal[0]
+        assert branch_df.at[len(branch_df) - 1, "y"] == goal[1]
+        
+    # Planned trajectory tree
+    if trajectory_df is not None:
+        for _, branch_df in trajectory_df.groupby("branch"):
+            plt.plot(branch_df["x"], branch_df["y"], "k-", linewidth=3.0)
+            branch_df = branch_df.reset_index(drop=True)
+            assert branch_df.at[len(branch_df) - 1, "x"].item() == start[0]
+            assert branch_df.at[len(branch_df) - 1, "y"].item() == start[1]
 
     if obstacle_df is not None:
         verts_l = util.extract_plottable_rectangles(obstacle_df)
@@ -190,7 +209,9 @@ def plan(start_goal_df, tree_df, obstacle_df):
     )
 
     legend_elements = [
-        Line2D([0], [0], color="black", linestyle="-", label="branch"),
+        Line2D([0], [0], color="black", linestyle="-", label="start tree"),
+        Line2D([0], [0], color="black", linestyle="--", label="goal tree"),
+        Line2D([0], [0], color="black", linestyle="-", linewidth=3.0, alpha=1, label="trajectory"),
         Line2D(
             [0],
             [0],
@@ -207,18 +228,19 @@ def plan(start_goal_df, tree_df, obstacle_df):
 
     if obstacle_df is not None:
         legend_elements.append(
-            Patch(facecolor="black", edgecolor="black", label="obstacle")
+            Patch(facecolor="white", edgecolor="red", label="obstacle")
         )
 
-    plt.title("rrt planning tree")
+    plt.title("rrt planning result")
     plt.xlabel("x (m)")
     plt.ylabel("y (m)")
     plt.xlim([-11, 11])
+    plt.ylim([-11, 11])
     plt.gca().set_aspect("equal")
 
     plt.legend(handles=legend_elements, loc="upper right")
     plt.show()
-    
+
 
 def interpolate_test():
     state_df = pd.read_csv(log_dir.joinpath("state.csv"))
@@ -230,6 +252,9 @@ def interpolate_test():
             plt.plot(x, y, c='r')
         else:
             plt.plot(x, y, c='k')
+    plt.xlim([-10, 10])
+    plt.ylim([-10, 10])
+    plt.gca().set_aspect('equal')
     plt.show()
 
 
@@ -239,6 +264,7 @@ name_to_plotter = {
     "plan_with_obstacles_test": plan_with_obstacles,
     "plan_without_obstacles_test": plan_with_obstacles,
     "dubins_interpolate_test": interpolate_test,
+    "dubins_distance_test": interpolate_test,
 }
 
 name_to_plotter[args.name]()
